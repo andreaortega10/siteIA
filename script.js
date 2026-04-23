@@ -86,7 +86,7 @@ function gerarRespostaIA(mensagemUsuario) {
         return "Eu não tenho idade como uma pessoa. Sou uma inteligência artificial simulada e ainda estou em fase de construção e atualização.";
     }
 
-    if (texto.includes("o que e ia") || texto.includes("inteligencia artificial")) {
+    if (texto.includes("o que e ia") || texto.includes("inteligencia artificial") || texto.includes("para que serve IA") || texto.includes("ia") || texto.includes("IA")) {
         return "IA significa Inteligência Artificial. De forma simples, é uma tecnologia criada para simular certas capacidades humanas, como interpretar perguntas, organizar informações e gerar respostas.";
     }
 
@@ -94,7 +94,7 @@ function gerarRespostaIA(mensagemUsuario) {
         return "O WebGen AI é uma plataforma pensada para ajudar usuários a transformar ideias em propostas de sistemas web. A ideia é que você descreva o que deseja criar, e a plataforma te ajude a organizar esse projeto.";
     }
 
-    if (texto.includes("como comecar") || texto.includes("como usar") || texto.includes("por onde comeco")) {
+    if (texto.includes("como comecar") || texto.includes("como usar") || texto.includes("por onde comeco") || texto.includes("por onde eu comeco")) {
         return "Para começar, você pode escrever uma pergunta ou descrever uma ideia de sistema. Por exemplo: quero criar uma loja virtual, um sistema de clínica ou uma plataforma de cursos.";
     }
 
