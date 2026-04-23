@@ -1,0 +1,392 @@
+/* =========================
+   RESET
+========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    transition: 0.3s ease;
+}
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    transition: 0.3s ease;
+}
+
+/* =========================
+   VARIÁVEIS - DARK (PADRÃO)
+========================= */
+:root {
+    --bg-main: #0a0614;
+    --bg-secondary: #120a24;
+    --bg-input: #1a1033;
+
+    --text-primary: #ffffff;
+    --text-secondary: #c4bddc;
+
+    --accent: #8b5cf6;
+    --accent-strong: #a855f7;
+
+    --border: rgba(255, 255, 255, 0.08);
+    --shadow-glow: 0 0 25px rgba(139, 92, 246, 0.35);
+}
+
+/* =========================
+   LIGHT MODE
+========================= */
+[data-theme="light"] {
+    --bg-main: #f5f3ff;
+    --bg-secondary: #ffffff;
+    --bg-input: #ffffff;
+
+    --text-primary: #1a1a2e;
+    --text-secondary: #5e5e7a;
+
+    --accent: #7c3aed;
+    --accent-strong: #6d28d9;
+
+    --border: rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 0 15px rgba(124, 58, 237, 0.25);
+}
+
+/* =========================
+   BACKGROUND
+========================= */
+.app-background {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-main);
+    z-index: -1;
+}
+
+.bg-glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: var(--accent);
+    filter: blur(140px);
+    opacity: 0.15;
+}
+
+.bg-glow-1 {
+    top: 10%;
+    left: 10%;
+}
+
+.bg-glow-2 {
+    bottom: 10%;
+    right: 10%;
+}
+
+.bg-grid {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(transparent, rgba(139, 92, 246, 0.08));
+}
+
+/* =========================
+   LAYOUT
+========================= */
+.landing-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================
+   TOPBAR
+========================= */
+.topbar {
+    padding: 20px 0;
+}
+
+.brand-mark {
+    font-size: 20px;
+    color: var(--accent);
+}
+
+.topbar-brand-text {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Botões topo */
+.icon-action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.icon-action-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: var(--shadow-glow);
+}
+
+.logout-btn:hover {
+    background: #ff4d4d;
+}
+
+/* =========================
+   HERO
+========================= */
+.hero-wrapper {
+    min-height: 80vh;
+}
+
+.hero-badge {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.hero-title {
+    font-size: 56px;
+    font-weight: bold;
+}
+
+.hero-title-main {
+    color: var(--text-primary);
+}
+
+.hero-title-accent {
+    color: var(--accent);
+}
+
+.hero-description {
+    margin-top: 10px;
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+.hero-subdescription {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin-top: 10px;
+}
+
+/* =========================
+   INPUT
+========================= */
+.prompt-section {
+    margin-top: 40px;
+}
+
+.prompt-box {
+    max-width: 760px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-input);
+    border-radius: 30px;
+    padding: 12px 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-glow);
+}
+
+.prompt-leading-icon {
+    color: var(--accent);
+    font-size: 18px;
+}
+
+.prompt-input {
+    width: 100%;
+    min-height: 24px;
+    max-height: 160px;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.5;
+    resize: none;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 0;
+}
+
+.prompt-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.95;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.prompt-input-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+/* Botão enviar */
+.send-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.send-btn:hover {
+    background: var(--accent-strong);
+    box-shadow: var(--shadow-glow);
+}
+
+/* Texto ajuda */
+.prompt-tip {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* =========================
+   CHAT
+========================= */
+.chat-container {
+    max-width: 700px;
+    margin-top: 30px;
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Mensagens */
+.chat-message {
+    padding: 12px 14px;
+    border-radius: 14px;
+    margin-bottom: 10px;
+    max-width: 80%;
+    line-height: 1.5;
+}
+
+.user-message {
+    background: var(--accent);
+    color: #fff;
+    margin-left: auto;
+}
+
+.ai-message {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    text-align: left;
+}
+
+.ai-response-block {
+    text-align: left;
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+.ai-response-block p {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.ai-response-block p:last-child {
+    margin-bottom: 0;
+}
+
+.ai-response-block strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.ai-response-block ul {
+    margin: 8px 0 12px 18px;
+    padding: 0;
+}
+
+.ai-response-block li {
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+/* Estado vazio */
+.chat-empty-state {
+    text-align: center;
+    opacity: 0.9;
+    padding: 8px 12px;
+}
+
+.empty-state-icon {
+    font-size: 30px;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+
+.empty-state-title {
+    color: var(--text-primary);
+}
+
+.empty-state-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* =========================
+   MODAL
+========================= */
+.custom-modal {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.custom-modal-header {
+    border-bottom: 1px solid var(--border);
+}
+
+.custom-modal-footer {
+    border-top: 1px solid var(--border);
+}
+
+.primary-action-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+}
+
+/* =========================
+   TOAST
+========================= */
+.custom-toast {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.custom-toast-header {
+    background: transparent;
+    color: var(--text-primary);
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 36px;
+    }
+
+    .prompt-box {
+        padding: 10px;
+    }
+}
