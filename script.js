@@ -49,10 +49,17 @@ function enviarMensagem() {
 
     userInput.value = "";
 
-    setTimeout(async () => {
+   setTimeout(async () => {
+
+    const pensando = mostrarPensando();
+
     const resposta = await chamarIAAzure(texto);
+
+    pensando.remove();
+
     adicionarMensagem(resposta, "ia");
-}, 500);
+
+}, 300);
 }
 
 function adicionarMensagem(texto, tipo) {
@@ -62,64 +69,19 @@ function adicionarMensagem(texto, tipo) {
     if (tipo === "usuario") {
         mensagem.classList.add("user-message");
         mensagem.textContent = texto;
-    } else {
-        mensagem.classList.add("ai-message");
-        mensagem.innerHTML = formatarResposta(texto);
+
+        chatContainer.appendChild(mensagem);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return;
     }
 
+    mensagem.classList.add("ai-message");
     chatContainer.appendChild(mensagem);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    efeitoDigitando(mensagem, texto);
 }
 
-function gerarRespostaIA(mensagemUsuario) {
-    const texto = normalizarTexto(mensagemUsuario);
 
-    if (texto === "oi" || texto === "ola" || texto.includes("bom dia") || texto.includes("boa tarde") || texto.includes("boa noite")) {
-        return "Olá! Eu sou a assistente do WebGen AI. Posso te ajudar a entender a plataforma ou começar a organizar a ideia de um sistema web.";
-    }
-
-    if (texto.includes("qual seu nome") || texto.includes("seu nome") || texto.includes("como voce se chama")) {
-        return "Meu nome é WebGen AI. Eu sou uma IA simulada criada para interagir com o usuário e auxiliar na criação de ideias para sistemas web.";
-    }
-
-    if (texto.includes("idade") || texto.includes("quantos anos voce tem")) {
-        return "Eu não tenho idade como uma pessoa. Sou uma inteligência artificial simulada e ainda estou em fase de construção e atualização.";
-    }
-
-    if (texto.includes("o que e ia") || texto.includes("inteligencia artificial") || texto.includes("para que serve IA") || texto.includes("ia") || texto.includes("IA")) {
-        return "IA significa Inteligência Artificial. De forma simples, é uma tecnologia criada para simular certas capacidades humanas, como interpretar perguntas, organizar informações e gerar respostas.";
-    }
-
-    if (texto.includes("o que e o webgen") || texto.includes("para que serve") || texto.includes("o que esse site faz")) {
-        return "O WebGen AI é uma plataforma pensada para ajudar usuários a transformar ideias em propostas de sistemas web. A ideia é que você descreva o que deseja criar, e a plataforma te ajude a organizar esse projeto.";
-    }
-
-    if (texto.includes("como comecar") || texto.includes("como usar") || texto.includes("por onde comeco") || texto.includes("por onde eu comeco")) {
-        return "Para começar, você pode escrever uma pergunta ou descrever uma ideia de sistema. Por exemplo: quero criar uma loja virtual, um sistema de clínica ou uma plataforma de cursos.";
-    }
-
-    if (texto.includes("o que voce faz") || texto.includes("como voce ajuda")) {
-        return "Eu ajudo respondendo perguntas iniciais, explicando conceitos básicos e simulando uma orientação para criação de sistemas web.";
-    }
-
-    if (texto.includes("html")) {
-        return "HTML é usado para criar a estrutura de uma página web. Com ele, colocamos títulos, textos, botões, formulários, imagens e outras partes do site.";
-    }
-
-    if (texto.includes("css")) {
-        return "CSS é usado para cuidar do visual da página. Ele define cores, tamanhos, espaçamentos, fontes, alinhamentos e efeitos visuais.";
-    }
-
-    if (texto.includes("javascript") || texto.includes("js")) {
-        return "JavaScript é usado para deixar o site interativo. Ele permite ações como enviar mensagens, abrir janelas, trocar tema e responder ao usuário.";
-    }
-
-    if (texto.includes("criar sistema") || texto.includes("quero um sistema") || texto.includes("quero criar") || texto.includes("site")) {
-        return "Entendi. Podemos começar definindo o objetivo do sistema, o público que vai usar, as principais funcionalidades e as telas necessárias. Depois disso, fica mais fácil pensar na estrutura do projeto.";
-    }
-
-    return "Ainda estou em construção e atualização, então não sei responder isso com precisão. Mas posso te ajudar com perguntas sobre IA, criação de sistemas, HTML, CSS, JavaScript ou sobre o próprio WebGen AI.";
-}
 
 function formatarResposta(texto) {
     return `
@@ -191,12 +153,15 @@ async function chamarIAAzure(mensagemUsuario) {
                 "api-key": config.AZURE_API_KEY
             },
             body: JSON.stringify({
+                instructions: "Você é uma assistente de IA chamada WebGen AI. Responda de forma natural, simples e didática. Ajude o usuário a entender conceitos de tecnologia, criação de sistemas web e funcionamento da plataforma. Se não souber algo, diga que ainda está em construção e atualização.",
+    
                 input: [
                     {
                         role: "user",
                         content: mensagemUsuario
                     }
                 ],
+
                 max_output_tokens: 1000,
                 model: config.AZURE_MODEL
             })
@@ -226,4 +191,51 @@ async function chamarIAAzure(mensagemUsuario) {
         console.error("Erro:", erro);
         return "Não foi possível conectar à IA. Verifique se o config.json está correto e se o projeto está rodando pelo Live Server.";
     }
+}
+
+function mostrarPensando() {
+    const pensando = document.createElement("div");
+    pensando.classList.add("chat-message", "ai-message");
+
+    pensando.innerHTML = `
+        <div class="thinking">
+            Pensando<span>.</span><span>.</span><span>.</span>
+        </div>
+    `;
+
+    chatContainer.appendChild(pensando);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    return pensando;
+}
+
+// efeito de resposta com efeitos (negrito, italic, parágrafos)
+function efeitoDigitando(elemento, texto) {
+    let i = 0;
+    let textoParcial = "";
+
+    const intervalo = setInterval(() => {
+        textoParcial += texto.charAt(i);
+
+        // MOSTRA TEXTO SIMPLES durante digitação
+        elemento.innerHTML = `
+            <div class="ai-response-block">
+                <p>${textoParcial}</p>
+            </div>
+        `;
+
+        i++;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        if (i >= texto.length) {
+            clearInterval(intervalo);
+
+            // AQUI converte para Markdown corretamente
+            elemento.innerHTML = `
+                <div class="ai-response-block">
+                    ${marked.parse(texto)}
+                </div>
+            `;
+        }
+    }, 15);
 }
