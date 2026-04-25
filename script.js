@@ -49,10 +49,10 @@ function enviarMensagem() {
 
     userInput.value = "";
 
-    setTimeout(() => {
-        const resposta = gerarRespostaIA(texto);
-        adicionarMensagem(resposta, "ia");
-    }, 500);
+    setTimeout(async () => {
+    const resposta = await chamarIAAzure(texto);
+    adicionarMensagem(resposta, "ia");
+}, 500);
 }
 
 function adicionarMensagem(texto, tipo) {
@@ -124,7 +124,7 @@ function gerarRespostaIA(mensagemUsuario) {
 function formatarResposta(texto) {
     return `
         <div class="ai-response-block">
-            <p>${escaparHTML(texto)}</p>
+            <p>${marked.parse(texto)}</p>
         </div>
     `;
 }
@@ -167,5 +167,63 @@ function aplicarTema(tema) {
         themeToggleIcon.className = "bi bi-sun-fill";
     } else {
         themeToggleIcon.className = "bi bi-moon-stars-fill";
+    }
+}
+
+async function carregarConfiguracao() {
+    const resposta = await fetch("config.json");
+
+    if (!resposta.ok) {
+        throw new Error("Arquivo config.json não encontrado.");
+    }
+
+    return await resposta.json();
+}
+
+async function chamarIAAzure(mensagemUsuario) {
+    try {
+        const config = await carregarConfiguracao();
+
+        const resposta = await fetch(config.AZURE_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "api-key": config.AZURE_API_KEY
+            },
+            body: JSON.stringify({
+                input: [
+                    {
+                        role: "user",
+                        content: mensagemUsuario
+                    }
+                ],
+                max_output_tokens: 1000,
+                model: config.AZURE_MODEL
+            })
+        });
+
+        const dados = await resposta.json();
+        console.log(dados);
+
+        if (!resposta.ok) {
+            console.error("Erro da Azure:", dados);
+            return "Não consegui acessar a IA no momento. Verifique no console qual erro a Azure retornou.";
+        }
+
+        const mensagem = dados.output?.find(item => item.type === "message");
+
+        const conteudoTexto = mensagem?.content?.find(item => item.type === "output_text");
+
+        return (
+            dados.output_text ||
+            conteudoTexto?.text ||
+            dados.choices?.[0]?.message?.content ||
+            dados.choices?.[0]?.input?.content ||
+            "A IA respondeu, mas não consegui interpretar o formato da resposta."
+        );
+
+    } catch (erro) {
+        console.error("Erro:", erro);
+        return "Não foi possível conectar à IA. Verifique se o config.json está correto e se o projeto está rodando pelo Live Server.";
     }
 }
