@@ -73,6 +73,20 @@
                 </div>
 
                 <div class="topbar-actions d-flex align-items-center gap-2">
+                    <div class="ai-switch-wrapper">
+                        <span id="azureLabel" class="ai-switch-label active-ai">Azure GPT</span>
+
+                        <div class="form-check form-switch ai-switch">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                id="aiToggle"
+                            >
+                        </div>
+
+                        <span id="geminiLabel" class="ai-switch-label">Gemini</span>
+                    </div>
                     <button
                         id="themeToggleButton"
                         class="icon-action-btn"
@@ -111,30 +125,32 @@
                 </p>
 
                 <section class="prompt-section w-100">
-                    <div class="prompt-box mx-auto">
+                   <div class="prompt-box mx-auto">
                         <div class="prompt-leading-icon">
                             <i class="bi bi-stars"></i>
                         </div>
 
                         <div class="prompt-input-area">
-                            <label for="userInput" class="visually-hidden">
-                                Descreva o sistema web que você deseja criar
-                            </label>
                             <textarea
                                 id="userInput"
                                 class="prompt-input"
                                 rows="1"
                                 placeholder="Digite sua pergunta ou descreva a ideia do seu sistema..."
                             ></textarea>
+
+                            <div id="voiceListening" class="voice-listening d-none">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <p>Ouvindo...</p>
+                            </div>
                         </div>
 
-                        <button
-                            id="sendButton"
-                            class="send-btn"
-                            type="button"
-                            aria-label="Enviar"
-                            title="Enviar"
-                        >
+                        <button id="voiceButton" class="voice-btn" type="button" title="Usar microfone">
+                            <i id="voiceIcon" class="bi bi-mic-fill"></i>
+                        </button>
+
+                        <button id="sendButton" class="send-btn" type="button" title="Enviar">
                             <i class="bi bi-send-fill"></i>
                         </button>
                     </div>
