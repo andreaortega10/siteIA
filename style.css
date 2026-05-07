@@ -534,3 +534,57 @@ body {
         height: 24px;
     }
 }
+
+.custom-close-btn {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+[data-theme="light"] .custom-close-btn {
+    filter: none;
+}
+
+.custom-close-btn:hover {
+    opacity: 1;
+}
+
+.ai-message {
+    position: relative;
+}
+
+.ai-message-content {
+    padding-right: 34px;
+}
+
+.speak-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+
+    width: 28px;
+    height: 28px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--accent);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.3s ease;
+}
+
+.speak-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: var(--shadow-glow);
+}
+
+.speak-btn.speaking {
+    background: #ef4444;
+    color: #fff;
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.45);
+}
