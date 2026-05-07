@@ -24,15 +24,22 @@
         <div class="bg-grid"></div>
     </div>
 
-    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div class="toast-container position-fixed top-0 end-0 p-3">
         <div id="warningToast" class="toast custom-toast border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header custom-toast-header">
                 <i class="bi bi-exclamation-circle me-2"></i>
                 <strong class="me-auto">Aviso</strong>
-                <button type="button" class="btn-close custom-close-btn" data-bs-dismiss="toast" aria-label="Fechar"></button>
+
+                <button 
+                    type="button" 
+                    class="btn-close custom-close-btn" 
+                    data-bs-dismiss="toast" 
+                    aria-label="Fechar">
+                </button>
             </div>
+
             <div class="toast-body" id="toastMessage">
-                Digite uma mensagem antes de enviar.
+                Mensagem de aviso.
             </div>
         </div>
     </div>
@@ -155,9 +162,7 @@
                         </button>
                     </div>
 
-                    <p class="prompt-tip">
-                        Você pode perguntar sobre a plataforma ou começar descrevendo um projeto.
-                    </p>
+        
                 </section>
 
                 <section class="chat-section w-100">
