@@ -9,6 +9,7 @@ const voiceListening = document.getElementById("voiceListening");
 let recognition = null;
 let isListening = false;
 
+
 const userInput = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
 const chatContainer = document.getElementById("chatContainer");
@@ -102,6 +103,7 @@ function enviarMensagem() {
         pensando.remove();
 
         adicionarMensagem(resposta, "ia");
+
     }, 300);
 }
 
@@ -119,9 +121,29 @@ function adicionarMensagem(texto, tipo) {
     }
 
     mensagem.classList.add("ai-message");
+
+    const conteudoMensagem = document.createElement("div");
+    conteudoMensagem.classList.add("ai-message-content");
+
+    const botaoOuvir = document.createElement("button");
+    botaoOuvir.classList.add("speak-btn");
+    botaoOuvir.innerHTML = `<i class="bi bi-volume-up-fill"></i>`;
+    botaoOuvir.title = "Ouvir resposta";
+
+    botaoOuvir.addEventListener("click", () => {
+        if (botaoOuvir.classList.contains("speaking")) {
+            pararFala(botaoOuvir);
+        } else {
+            falarTexto(texto, botaoOuvir);
+        }
+    });
+
+    mensagem.appendChild(conteudoMensagem);
+    mensagem.appendChild(botaoOuvir);
+
     chatContainer.appendChild(mensagem);
 
-    efeitoDigitando(mensagem, texto);
+    efeitoDigitando(conteudoMensagem, texto);
 }
 
 function mostrarPensando() {
@@ -387,15 +409,6 @@ function validarChaveIA(config) {
     return null;
 }
 
-function configurarReconhecimentoVoz() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-        voiceButton.disabled = true;
-        mostrarAviso("Seu navegador não suporta reconhecimento de voz. Use o Google Chrome.");
-        return;
-    }
-
     recognition = new SpeechRecognition();
     recognition.lang = "pt-BR";
     recognition.continuous = false;
@@ -454,6 +467,55 @@ recognition.onnomatch = () => {
     mostrarAviso("Não consegui entender o que foi dito. Tente novamente ou digite sua mensagem.");
 };
 
+recognition.onend = () => {
+    isListening = false;
+
+    userInput.disabled = false;
+    userInput.placeholder = "Digite sua pergunta ou descreva a ideia do seu sistema...";
+    userInput.focus();
+
+    voiceButton.classList.remove("listening");
+    voiceIcon.className = "bi bi-mic-fill";
+
+    voiceListening.classList.add("d-none");
+};
+
+
+function configurarReconhecimentoVoz() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        voiceButton.disabled = true;
+        mostrarAviso("Seu navegador não suporta reconhecimento de voz. Use o Google Chrome.");
+        return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+        isListening = true;
+
+        userInput.disabled = true;
+        userInput.placeholder = "";
+
+        voiceButton.classList.add("listening");
+        voiceIcon.className = "bi bi-mic-mute-fill";
+        voiceListening.classList.remove("d-none");
+    };
+
+    recognition.onresult = (event) => {
+        const textoReconhecido = event.results[0][0].transcript;
+        userInput.value = textoReconhecido;
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Erro no reconhecimento de voz:", event.error);
+        mostrarAviso("Não consegui reconhecer sua fala. Tente novamente ou digite sua mensagem.");
+    };
+
     recognition.onend = () => {
         isListening = false;
 
@@ -463,7 +525,6 @@ recognition.onnomatch = () => {
 
         voiceButton.classList.remove("listening");
         voiceIcon.className = "bi bi-mic-fill";
-
         voiceListening.classList.add("d-none");
     };
 }
@@ -483,4 +544,69 @@ function alternarReconhecimentoVoz() {
     }
 
     recognition.start();
+}
+
+function falarTexto(texto, botao) {
+    if (!("speechSynthesis" in window)) {
+        mostrarAviso("Seu navegador não suporta saída de voz.");
+        return;
+    }
+
+    const textoLimpo = limparTextoParaVoz(texto);
+
+    window.speechSynthesis.cancel();
+
+    botao.innerHTML = `<i class="bi bi-stop-fill"></i>`;
+    botao.title = "Parar áudio";
+    botao.classList.add("speaking");
+
+    const fala = new SpeechSynthesisUtterance(textoLimpo);
+    fala.lang = "pt-BR";
+    fala.rate = 1;
+    fala.pitch = 1;
+    fala.volume = 1;
+
+    fala.onend = () => {
+        resetarBotaoFala(botao);
+    };
+
+    fala.onerror = () => {
+        resetarBotaoFala(botao);
+    };
+
+    window.speechSynthesis.speak(fala);
+}
+
+function limparTextoParaVoz(texto) {
+    return texto
+        // remove emojis
+        .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
+        .replace(/[\u{2600}-\u{27BF}]/gu, "")
+
+        // remove markdown
+        .replace(/\*\*(.*?)\*\*/g, "$1")
+        .replace(/\*(.*?)\*/g, "$1")
+        .replace(/__(.*?)__/g, "$1")
+        .replace(/_(.*?)_/g, "$1")
+        .replace(/`{1,3}([\s\S]*?)`{1,3}/g, "$1")
+        .replace(/#{1,6}\s*/g, "")
+        .replace(/>\s*/g, "")
+        .replace(/[-*+]\s/g, "")
+        .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+
+        // limpa quebras
+        .replace(/\n+/g, ". ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function pararFala(botao) {
+    window.speechSynthesis.cancel();
+    resetarBotaoFala(botao);
+}
+
+function resetarBotaoFala(botao) {
+    botao.innerHTML = `<i class="bi bi-volume-up-fill"></i>`;
+    botao.title = "Ouvir resposta";
+    botao.classList.remove("speaking");
 }
