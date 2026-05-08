@@ -9,6 +9,7 @@ const voiceListening = document.getElementById("voiceListening");
 let recognition = null;
 let isListening = false;
 
+let historicoConversa = [];
 
 const userInput = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
@@ -93,17 +94,38 @@ function enviarMensagem() {
 
     adicionarMensagem(texto, "usuario");
 
+    historicoConversa.push({
+        role: "user",
+        content: texto
+    });
+
     userInput.value = "";
 
     setTimeout(async () => {
         const pensando = mostrarPensando();
 
-        const resposta = await chamarIA(texto);
+        try {
+            const resposta = await chamarIA(texto);
 
-        pensando.remove();
+            pensando.remove();
 
-        adicionarMensagem(resposta, "ia");
+            adicionarMensagem(resposta, "ia");
 
+            historicoConversa.push({
+                role: "assistant",
+                content: resposta
+            });
+
+        } catch (erro) {
+            console.error("Erro ao responder:", erro);
+
+            pensando.remove();
+
+            adicionarMensagem(
+                "Não consegui gerar uma resposta agora. Verifique o console para mais detalhes.",
+                "ia"
+            );
+        }
     }, 300);
 }
 
@@ -130,17 +152,21 @@ function adicionarMensagem(texto, tipo) {
     botaoOuvir.innerHTML = `<i class="bi bi-volume-up-fill"></i>`;
     botaoOuvir.title = "Ouvir resposta";
 
+    const indicadorFala = document.createElement("span");
+    indicadorFala.classList.add("speaking-indicator", "d-none");
+    indicadorFala.textContent = "IA falando...";
+
     botaoOuvir.addEventListener("click", () => {
         if (botaoOuvir.classList.contains("speaking")) {
-            pararFala(botaoOuvir);
+            pararAudioAzure();
         } else {
-            falarTexto(texto, botaoOuvir);
+            falarTextoAzure(texto, botaoOuvir, indicadorFala);
         }
     });
 
     mensagem.appendChild(conteudoMensagem);
     mensagem.appendChild(botaoOuvir);
-
+    mensagem.appendChild(indicadorFala);
     chatContainer.appendChild(mensagem);
 
     efeitoDigitando(conteudoMensagem, texto);
@@ -284,12 +310,10 @@ async function chamarIAAzure(mensagemUsuario, config) {
                     Se não souber algo, diga que ainda está em construção.
                 `,
 
-                input: [
-                    {
-                        role: "user",
-                        content: mensagemUsuario
-                    }
-                ],
+                input: historicoConversa.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                })),
 
                 max_output_tokens: 1000,
                 model: config.AZURE_MODEL
@@ -346,16 +370,15 @@ async function chamarIAGemini(mensagemUsuario, config) {
                         }
                     ]
                 },
-                contents: [
-                    {
-                        role: "user",
-                        parts: [
-                            {
-                                text: mensagemUsuario
-                            }
-                        ]
-                    }
-                ],
+                contents: historicoConversa.map(msg => ({
+                    role: msg.role === "assistant" ? "model" : "user",
+                    parts: [
+                        {
+                            text: msg.content
+                        }
+                    ]
+                })),
+
                 generationConfig: {
                     maxOutputTokens: 1000,
                     temperature: 0.8
@@ -546,35 +569,161 @@ function alternarReconhecimentoVoz() {
     recognition.start();
 }
 
-function falarTexto(texto, botao) {
-    if (!("speechSynthesis" in window)) {
-        mostrarAviso("Seu navegador não suporta saída de voz.");
-        return;
+let audioAtual = null;
+let botaoFalaAtual = null;
+let indicadorFalaAtual = null;
+
+async function falarTextoAzure(texto, botao, indicador) {
+    try {
+        const config = await carregarConfiguracao();
+
+        const textoLimpo = limparTextoParaVoz(texto);
+
+        if (!textoLimpo) {
+            mostrarAviso("Não há texto válido para reproduzir.");
+            return;
+        }
+
+        pararAudioAzure();
+
+        botaoFalaAtual = botao;
+        indicadorFalaAtual = indicador;
+
+        botao.innerHTML = `<i class="bi bi-stop-fill"></i>`;
+        botao.title = "Parar áudio";
+        botao.classList.add("speaking");
+
+        if (indicador) {
+            indicador.classList.remove("d-none");
+        }
+
+        sendButton.disabled = true;
+        sendButton.classList.add("disabled-send");
+
+        const ssml = `
+<speak version='1.0' xml:lang='pt-BR'>
+    <voice name='${config.AZURE_SPEECH_VOICE}'>
+        ${escaparXML(textoLimpo)}
+    </voice>
+</speak>`;
+
+        const resposta = await fetch(config.AZURE_SPEECH_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Ocp-Apim-Subscription-Key": config.AZURE_SPEECH_KEY,
+                "Content-Type": "application/ssml+xml",
+                "X-Microsoft-OutputFormat": config.AZURE_SPEECH_OUTPUT_FORMAT
+            },
+            body: ssml
+        });
+
+        if (!resposta.ok) {
+            console.error("Erro Azure Speech:", await resposta.text());
+            resetarBotaoFala(botao);
+            mostrarAviso("Não foi possível gerar o áudio pela Azure Speech.");
+            return;
+        }
+
+        const audioBlob = await resposta.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        audioAtual = new Audio(audioUrl);
+
+        audioAtual.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            resetarBotaoFala(botao);
+            esconderIndicadorFala(indicador);
+
+            sendButton.disabled = false;
+            sendButton.classList.remove("disabled-send");
+
+            audioAtual = null;
+            botaoFalaAtual = null;
+            indicadorFalaAtual = null;
+        };
+
+        audioAtual.onerror = () => {
+            URL.revokeObjectURL(audioUrl);
+            resetarBotaoFala(botao);
+            esconderIndicadorFala(indicador);
+
+            sendButton.disabled = false;
+            sendButton.classList.remove("disabled-send");
+
+            mostrarAviso("Erro ao reproduzir o áudio gerado.");
+
+            audioAtual = null;
+            botaoFalaAtual = null;
+            indicadorFalaAtual = null;
+        };
+
+        audioAtual.play();
+
+    } catch (erro) {
+        console.error("Erro Text to Speech:", erro);
+        resetarBotaoFala(botao);
+        mostrarAviso("Erro ao conectar com o serviço de voz da Azure.");
+    }
+}
+
+function pararAudioAzure() {
+    if (audioAtual) {
+        audioAtual.pause();
+        audioAtual.currentTime = 0;
+        audioAtual = null;
     }
 
-    const textoLimpo = limparTextoParaVoz(texto);
+    if (botaoFalaAtual) {
+        resetarBotaoFala(botaoFalaAtual);
+        botaoFalaAtual = null;
+    }
 
-    window.speechSynthesis.cancel();
+    if (indicadorFalaAtual) {
+        esconderIndicadorFala(indicadorFalaAtual);
+        indicadorFalaAtual = null;
+    }
 
-    botao.innerHTML = `<i class="bi bi-stop-fill"></i>`;
-    botao.title = "Parar áudio";
-    botao.classList.add("speaking");
+    sendButton.disabled = false;
+    sendButton.classList.remove("disabled-send");
+}
 
-    const fala = new SpeechSynthesisUtterance(textoLimpo);
-    fala.lang = "pt-BR";
-    fala.rate = 1;
-    fala.pitch = 1;
-    fala.volume = 1;
+function esconderIndicadorFala(indicador) {
+    if (indicador) {
+        indicador.classList.add("d-none");
+    }
+}
 
-    fala.onend = () => {
-        resetarBotaoFala(botao);
-    };
+function resetarBotaoFala(botao) {
+    botao.innerHTML = `<i class="bi bi-volume-up-fill"></i>`;
+    botao.title = "Ouvir resposta";
+    botao.classList.remove("speaking");
+}
 
-    fala.onerror = () => {
-        resetarBotaoFala(botao);
-    };
+function limparTextoParaVoz(texto) {
+    return texto
+        .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
+        .replace(/[\u{2600}-\u{27BF}]/gu, "")
+        .replace(/\*\*(.*?)\*\*/g, "$1")
+        .replace(/\*(.*?)\*/g, "$1")
+        .replace(/__(.*?)__/g, "$1")
+        .replace(/_(.*?)_/g, "$1")
+        .replace(/`{1,3}([\s\S]*?)`{1,3}/g, "$1")
+        .replace(/#{1,6}\s*/g, "")
+        .replace(/>\s*/g, "")
+        .replace(/[-*+]\s/g, "")
+        .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+        .replace(/\n+/g, ". ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
 
-    window.speechSynthesis.speak(fala);
+function escaparXML(texto) {
+    return texto
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
 }
 
 function limparTextoParaVoz(texto) {
@@ -610,3 +759,6 @@ function resetarBotaoFala(botao) {
     botao.title = "Ouvir resposta";
     botao.classList.remove("speaking");
 }
+
+// como implementar o fluxo de mensagens utilizando a Azure -> stream
+// https://learn.microsoft.com/pt-br/azure/foundry/openai/how-to/responses?view=foundry&tabs=rest-api
