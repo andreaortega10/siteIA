@@ -1,3 +1,4 @@
+
 const aiToggle = document.getElementById("aiToggle");
 const azureLabel = document.getElementById("azureLabel");
 const geminiLabel = document.getElementById("geminiLabel");
@@ -29,10 +30,36 @@ const logoutModal = new bootstrap.Modal(logoutModalElement);
 
 let iaSelecionada = "azure";
 
+// reconhecimento por palavra-chave
+let wakeRecognition = null;
+let wakeListening = false;
+let modoEscutaAtiva = false;
+const palavraChave = "ola web";
+const wakeModeToggle = document.getElementById("wakeModeToggle");
+
+wakeModeToggle.addEventListener("change", () => {
+
+    modoEscutaAtiva = wakeModeToggle.checked;
+
+    if (modoEscutaAtiva) {
+
+        mostrarAviso("Escuta ativa ligada. Diga: Olá Web.");
+
+        iniciarEscutaPalavraChave();
+
+    } else {
+
+        mostrarAviso("Escuta ativa desligada.");
+
+        pararEscutaPalavraChave();
+    }
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     initializeTheme();
     initializeAI();
     configurarReconhecimentoVoz();
+    iniciarEscutaPalavraChave();
 });
 
 sendButton.addEventListener("click", enviarMensagem);
@@ -60,6 +87,105 @@ aiToggle.addEventListener("change", () => {
 
 voiceButton.addEventListener("click", alternarReconhecimentoVoz);
 
+function configurarEscutaPalavraChave() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        mostrarAviso("Seu navegador não suporta escuta por palavra-chave.");
+        return;
+    }
+
+    wakeRecognition = new SpeechRecognition();
+    wakeRecognition.lang = "pt-BR";
+    wakeRecognition.continuous = false;
+    wakeRecognition.interimResults = false;
+
+    wakeRecognition.onstart = () => {
+        wakeListening = true;
+        console.log("Escutando palavra-chave...");
+    };
+
+    wakeRecognition.onresult = (event) => {
+        const resultado = event.results[0][0].transcript;
+
+        const texto = resultado
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+        console.log("Reconhecido na escuta ativa:", texto);
+
+        if (texto.includes(palavraChave)) {
+            responderAtivacaoPorVoz();
+        }
+    };
+
+    wakeRecognition.onerror = (event) => {
+        console.warn("Erro na escuta por palavra-chave:", event.error);
+    };
+
+    wakeRecognition.onend = () => {
+        wakeListening = false;
+
+        if (modoEscutaAtiva) {
+            setTimeout(() => {
+                iniciarEscutaPalavraChave();
+            }, 800);
+        }
+
+        if (modoEscutaAtiva) {
+            setTimeout(() => {
+                iniciarEscutaPalavraChave();
+            }, 800);
+        }
+    };
+}
+
+function iniciarEscutaPalavraChave() {
+    if (!wakeRecognition) {
+        configurarEscutaPalavraChave();
+    }
+
+    if (!wakeRecognition || wakeListening || !modoEscutaAtiva) {
+        return;
+    }
+
+    try {
+        wakeRecognition.start();
+    } catch (erro) {
+        console.warn("A escuta já estava ativa.");
+    }
+}
+
+function pararEscutaPalavraChave() {
+    if (wakeRecognition && wakeListening) {
+        wakeRecognition.stop();
+    }
+
+    wakeListening = false;
+}
+function responderAtivacaoPorVoz() {
+    mostrarAviso("Olá Web reconhecido. Pode falar sua mensagem.");
+
+    const mensagem = "Olá, estou ouvindo. Pode falar sua mensagem.";
+
+    if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+
+        const fala = new SpeechSynthesisUtterance(mensagem);
+        fala.lang = "pt-BR";
+
+        fala.onend = () => {
+            setTimeout(() => {
+                alternarReconhecimentoVoz();
+            }, 500);
+        };
+
+        window.speechSynthesis.speak(fala);
+    } else {
+        alternarReconhecimentoVoz();
+    }
+}
 
 function initializeAI() {
     const iaSalva = localStorage.getItem("webgen-ia") || "azure";
@@ -437,71 +563,6 @@ function validarChaveIA(config) {
     recognition.continuous = false;
     recognition.interimResults = false;
 
-    recognition.onstart = () => {
-        isListening = true;
-
-        userInput.disabled = true;
-        userInput.placeholder = "";
-
-        voiceButton.classList.add("listening");
-        voiceIcon.className = "bi bi-mic-mute-fill";
-
-        voiceListening.classList.remove("d-none");
-    };
-
-    recognition.onresult = (event) => {
-        const textoReconhecido = event.results[0][0].transcript;
-
-        userInput.value = textoReconhecido;
-    };
-
-    recognition.onerror = (event) => {
-
-    console.error("Erro no reconhecimento de voz:", event.error);
-
-    let mensagemErro = "";
-
-    switch (event.error) {
-
-        case "no-speech":
-            mensagemErro = "Não consegui ouvir nenhuma fala. Tente novamente ou digite sua mensagem.";
-            break;
-
-        case "audio-capture":
-            mensagemErro = "Não encontrei um microfone disponível no dispositivo.";
-            break;
-
-        case "not-allowed":
-            mensagemErro = "Permissão do microfone negada. Ative o acesso ao microfone no navegador.";
-            break;
-
-        case "network":
-            mensagemErro = "Erro de conexão durante o reconhecimento de voz.";
-            break;
-
-        default:
-            mensagemErro = "Não consegui reconhecer sua fala. Tente novamente ou digite sua mensagem.";
-    }
-
-    mostrarAviso(mensagemErro);
-};
-
-recognition.onnomatch = () => {
-    mostrarAviso("Não consegui entender o que foi dito. Tente novamente ou digite sua mensagem.");
-};
-
-recognition.onend = () => {
-    isListening = false;
-
-    userInput.disabled = false;
-    userInput.placeholder = "Digite sua pergunta ou descreva a ideia do seu sistema...";
-    userInput.focus();
-
-    voiceButton.classList.remove("listening");
-    voiceIcon.className = "bi bi-mic-fill";
-
-    voiceListening.classList.add("d-none");
-};
 
 
 function configurarReconhecimentoVoz() {
@@ -527,6 +588,10 @@ function configurarReconhecimentoVoz() {
         voiceButton.classList.add("listening");
         voiceIcon.className = "bi bi-mic-mute-fill";
         voiceListening.classList.remove("d-none");
+
+        sendButton.disabled = true;
+        sendButton.classList.add("disabled-send");
+        sendButton.setAttribute("aria-disabled", "true");
     };
 
     recognition.onresult = (event) => {
@@ -549,10 +614,22 @@ function configurarReconhecimentoVoz() {
         voiceButton.classList.remove("listening");
         voiceIcon.className = "bi bi-mic-fill";
         voiceListening.classList.add("d-none");
+
+        sendButton.disabled = false;
+        sendButton.classList.remove("disabled-send");
+        sendButton.removeAttribute("aria-disabled");
+    };
+
+    recognition.onnomatch = () => {
+        mostrarAviso("Não consegui entender o que foi dito. Tente novamente ou digite sua mensagem.");
     };
 }
 
 function alternarReconhecimentoVoz() {
+    if (modoEscutaAtiva) {
+        pararEscutaPalavraChave();
+    }
+
     if (!recognition) {
         configurarReconhecimentoVoz();
     }
