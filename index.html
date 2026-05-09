@@ -72,6 +72,8 @@
     <main class="landing-page">
         <div class="container-fluid px-3 px-md-4 px-lg-5">
             <header class="topbar d-flex justify-content-between align-items-center">
+                
+                <header class="topbar">
                 <div class="topbar-brand d-flex align-items-center gap-2">
                     <div class="brand-mark">
                         <i class="bi bi-cpu-fill"></i>
@@ -79,40 +81,34 @@
                     <span class="topbar-brand-text">WebGen AI</span>
                 </div>
 
-                <div class="topbar-actions d-flex align-items-center gap-2">
+                <div class="topbar-actions">
+
                     <div class="ai-switch-wrapper">
                         <span id="azureLabel" class="ai-switch-label active-ai">Azure GPT</span>
 
-                        <div class="form-check form-switch ai-switch">
-                            <input
-                                class="form-check-input"
-                                type="checkbox"
-                                role="switch"
-                                id="aiToggle"
-                            >
+                        <div class="form-check form-switch ai-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="aiToggle">
                         </div>
 
                         <span id="geminiLabel" class="ai-switch-label">Gemini</span>
                     </div>
-                    <button
-                        id="themeToggleButton"
-                        class="icon-action-btn"
-                        type="button"
-                        aria-label="Alternar tema"
-                        title="Alternar tema"
-                    >
+
+                    <div class="wake-switch-wrapper">
+                        <span class="wake-switch-label">Escuta ativa</span>
+
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="wakeModeToggle">
+                        </div>
+                    </div>
+
+                    <button id="themeToggleButton" class="icon-action-btn" type="button">
                         <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
                     </button>
 
-                    <button
-                        id="logoutButton"
-                        class="icon-action-btn logout-btn"
-                        type="button"
-                        aria-label="Sair do programa"
-                        title="Sair do programa"
-                    >
+                    <button id="logoutButton" class="icon-action-btn logout-btn" type="button">
                         <i class="bi bi-box-arrow-right"></i>
                     </button>
+
                 </div>
             </header>
 
