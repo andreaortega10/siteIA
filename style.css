@@ -104,7 +104,12 @@ body {
    TOPBAR
 ========================= */
 .topbar {
-    padding: 20px 0;
+    position: fixed;
+    top: 20px;
+    left: 40px;
+    right: 40px;
+    z-index: 10;
+    padding: 0;
 }
 
 .brand-mark {
@@ -141,7 +146,8 @@ body {
    HERO
 ========================= */
 .hero-wrapper {
-    min-height: 80vh;
+    min-height: 100vh;
+    padding-top: 80px;
 }
 
 .hero-badge {
@@ -387,6 +393,25 @@ body {
 /* =========================
    RESPONSIVO
 ========================= */
+@media (max-width: 992px) {
+    .topbar {
+        position: static;
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px 0;
+    }
+
+    .topbar-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .hero-wrapper {
+        min-height: 80vh;
+        padding-top: 20px;
+    }
+}
+
 @media (max-width: 768px) {
     .hero-title {
         font-size: 36px;
@@ -612,4 +637,137 @@ body {
 .disabled-send {
     opacity: 0.45;
     cursor: not-allowed;
+    pointer-events: none;
+}
+
+.send-btn:disabled,
+.send-btn.disabled-send {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+    background: #6b5f7d;
+}
+
+.active-wake {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: var(--shadow-glow);
+}
+
+.wake-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+}
+
+.wake-switch-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+#wakeModeToggle {
+    width: 42px;
+    height: 22px;
+    cursor: pointer;
+}
+
+#wakeModeToggle:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* ===== LAYOUT FINAL CORRIGIDO ===== */
+
+.topbar {
+    position: fixed;
+    top: 24px;
+    left: 40px;
+    right: 40px;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.landing-page {
+    min-height: 100vh;
+}
+
+.hero-wrapper {
+    width: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding-top: 0;
+    padding-bottom: 60px;
+
+    transform: translateY(-25px);
+
+    text-align: center;
+}
+
+.hero-badge,
+.hero-title,
+.hero-description,
+.prompt-section,
+.chat-section {
+    max-width: 760px;
+    width: 100%;
+}
+
+.prompt-box {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.chat-container {
+    width: 100%;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ai-switch-wrapper,
+.wake-switch-wrapper {
+    flex-shrink: 0;
+}
+
+@media (max-width: 992px) {
+    .topbar {
+        position: static;
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .topbar-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .hero-wrapper {
+        min-height: auto;
+        padding: 40px 16px;
+    }
 }
